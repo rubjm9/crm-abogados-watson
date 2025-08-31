@@ -7,7 +7,9 @@ import {
   BarChart3, 
   Settings, 
   Menu,
-  X
+  X,
+  Home,
+  Bell
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -20,11 +22,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: BarChart3 },
+    { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Clientes', href: '/clients', icon: Users },
+    { name: 'Servicios', href: '/services', icon: FileText },
     { name: 'Casos', href: '/cases', icon: Briefcase },
-    { name: 'Tareas', href: '/tasks', icon: Calendar },
-    { name: 'Documentos', href: '/documents', icon: FileText },
+    { name: 'Calendario', href: '/calendar', icon: Calendar },
     { name: 'Configuración', href: '/settings', icon: Settings },
   ];
 

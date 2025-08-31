@@ -41,23 +41,83 @@ export interface CaseType {
 
 export interface Service {
   id: string;
+  name: string;
+  description: string;
+  category: 'Nacionalidad' | 'Residencia' | 'Visado' | 'Otros';
+  basePrice: number;
+  estimatedCost: number;
+  complexity: 'Baja' | 'Media' | 'Alta';
+  requiredDocuments: string[];
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceMilestone {
+  id: string;
+  serviceId: string;
+  name: string;
+  description: string;
+  orderNumber: number;
+  isPaymentRequired: boolean;
+  defaultPaymentAmount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientService {
+  id: string;
   clientId: string;
-  caseTypeId: string;
-  title: string;
-  description?: string;
-  totalPrice: number;
-  initialPayment: number;
-  amountOwed: number;
-  status: 'activo' | 'finalizado' | 'cancelado' | 'pausado';
+  serviceId: string;
+  assignedLawyerId?: string;
+  customPrice?: number;
+  status: 'Abierto' | 'En Progreso' | 'Completado' | 'Cancelado';
   startDate: string;
   endDate?: string;
-  assignedLawyer?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
   // Relaciones
+  service?: Service;
   client?: Client;
-  caseType?: CaseType;
-  assignedLawyerUser?: User;
+  assignedLawyer?: User;
+}
+
+export interface ClientMilestone {
+  id: string;
+  clientServiceId: string;
+  milestoneId: string;
+  isCompleted: boolean;
+  completedAt?: string;
+  paymentAmount?: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relaciones
+  milestone?: ServiceMilestone;
+}
+
+export interface ClientExpense {
+  id: string;
+  clientServiceId: string;
+  description: string;
+  amount: number;
+  expenseDate: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientDocument {
+  id: string;
+  clientServiceId: string;
+  documentName: string;
+  isObtained: boolean;
+  obtainedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Expense {
@@ -132,23 +192,45 @@ export interface CreateClientForm {
 }
 
 export interface CreateServiceForm {
+  name: string;
+  description: string;
+  category: 'Nacionalidad' | 'Residencia' | 'Visado' | 'Otros';
+  basePrice: number;
+  estimatedCost: number;
+  complexity: 'Baja' | 'Media' | 'Alta';
+  requiredDocuments: string[];
+  notes?: string;
+  milestones: CreateMilestoneForm[];
+}
+
+export interface CreateMilestoneForm {
+  name: string;
+  description: string;
+  orderNumber: number;
+  isPaymentRequired: boolean;
+  defaultPaymentAmount?: number;
+}
+
+export interface CreateClientServiceForm {
   clientId: string;
-  caseTypeId: string;
-  title: string;
-  description?: string;
-  totalPrice: number;
-  initialPayment: number;
-  startDate: string;
-  endDate?: string;
-  assignedLawyer?: string;
+  serviceId: string;
+  assignedLawyerId?: string;
+  customPrice?: number;
+  notes?: string;
+  milestones: CreateClientMilestoneForm[];
+}
+
+export interface CreateClientMilestoneForm {
+  milestoneId: string;
+  paymentAmount?: number;
+  notes?: string;
 }
 
 export interface CreateExpenseForm {
-  serviceId: string;
+  clientServiceId: string;
   description: string;
   amount: number;
-  date: string;
-  category: 'tramites' | 'documentos' | 'traducciones' | 'notarios' | 'otros';
+  expenseDate: string;
   notes?: string;
 }
 

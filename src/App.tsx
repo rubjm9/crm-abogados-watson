@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import DashboardPage from './pages/DashboardPage';
 import ClientsPage from './pages/ClientsPage';
+import ServicesPage from './pages/ServicesPage';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +29,7 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/services" element={<ServicesPage />} />
               <Route path="/cases" element={<div className="p-8 text-center text-gray-500">Página de Casos - En desarrollo</div>} />
               <Route path="/tasks" element={<div className="p-8 text-center text-gray-500">Página de Tareas - En desarrollo</div>} />
               <Route path="/documents" element={<div className="p-8 text-center text-gray-500">Página de Documentos - En desarrollo</div>} />
