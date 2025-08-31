@@ -10,12 +10,14 @@ Un sistema de gestión de relaciones con clientes (CRM) moderno y elegante dise�
 - **Dashboard Intuitivo**: Resumen visual de la actividad y estadísticas
 - **Filtros Avanzados**: Búsqueda y filtrado eficiente de información
 - **Navegación Intuitiva**: Sidebar responsive con navegación clara
+- **Base de Datos en Tiempo Real**: Integración con Supabase para persistencia de datos
+- **Números de Expediente Automáticos**: Sistema de numeración secuencial desde 300
 
 ## 🛠️ Tecnologías Utilizadas
 
 - **Frontend**: React 18 + TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v4
 - **Iconos**: Lucide React
 - **Routing**: React Router DOM
 - **Base de Datos**: Supabase (PostgreSQL)
@@ -31,8 +33,8 @@ Un sistema de gestión de relaciones con clientes (CRM) moderno y elegante dise�
 
 1. **Clonar el repositorio**
    ```bash
-   git clone <url-del-repositorio>
-   cd crm-aw
+   git clone https://github.com/rubjm9/crm-abogados-watson.git
+   cd crm-abogados-watson
    ```
 
 2. **Instalar dependencias**
@@ -40,17 +42,29 @@ Un sistema de gestión de relaciones con clientes (CRM) moderno y elegante dise�
    npm install
    ```
 
-3. **Configurar Tailwind CSS**
+3. **Configurar variables de entorno**
    ```bash
-   npx tailwindcss init -p
+   cp .env.example .env
+   ```
+   
+   Edita el archivo `.env` con tus credenciales de Supabase:
+   ```env
+   VITE_SUPABASE_URL=tu_url_de_supabase
+   VITE_SUPABASE_ANON_KEY=tu_clave_anonima
    ```
 
-4. **Iniciar el servidor de desarrollo**
+4. **Configurar la base de datos**
+   - Ve a tu [dashboard de Supabase](https://supabase.com/dashboard)
+   - Crea un nuevo proyecto
+   - Ve al SQL Editor y ejecuta el script de configuración de la base de datos
+   - (El script se encuentra en la documentación de configuración)
+
+5. **Iniciar el servidor de desarrollo**
    ```bash
    npm run dev
    ```
 
-5. **Abrir en el navegador**
+6. **Abrir en el navegador**
    ```
    http://localhost:5173
    ```
@@ -62,14 +76,17 @@ src/
 ├── components/          # Componentes reutilizables
 │   ├── Sidebar.tsx     # Barra lateral de navegación
 │   ├── Header.tsx      # Header principal
-│   └── ClientCard.tsx  # Tarjeta de cliente
+│   ├── ClientCard.tsx  # Tarjeta de cliente
+│   └── CreateClientModal.tsx # Modal de creación de clientes
 ├── pages/              # Páginas de la aplicación
 │   ├── DashboardPage.tsx  # Página principal
 │   └── ClientsPage.tsx    # Listado de clientes
-├── types/              # Definiciones de tipos TypeScript
-├── hooks/              # Hooks personalizados
-├── utils/              # Utilidades y helpers
 ├── services/           # Servicios y API calls
+│   ├── supabase.ts     # Configuración de Supabase
+│   └── clientService.ts # Servicios para clientes
+├── hooks/              # Hooks personalizados
+│   └── useSupabase.ts  # Hook para conexión con Supabase
+├── types/              # Definiciones de tipos TypeScript
 └── App.tsx             # Componente principal
 ```
 
@@ -88,69 +105,42 @@ src/
 ### ClientCard
 - Tarjeta elegante para mostrar información del cliente
 - Estados visuales claros (activo, inactivo, pendiente)
-- Información de contacto y casos asociados
+- Información de contacto y expediente
+
+### CreateClientModal
+- Formulario completo para crear nuevos clientes
+- Validación en tiempo real
+- Campos obligatorios y opcionales
+- Asignación automática de número de expediente
 
 ### Dashboard
 - Estadísticas en tiempo real
 - Actividad reciente
-- Tareas próximas
 - Resumen de casos por tipo
 
 ## 🔧 Configuración de Supabase
 
-1. Crear una cuenta en [Supabase](https://supabase.com)
-2. Crear un nuevo proyecto
-3. Configurar las variables de entorno:
+### 1. Crear Proyecto en Supabase
+1. Ve a [supabase.com](https://supabase.com)
+2. Crea una nueva cuenta o inicia sesión
+3. Crea un nuevo proyecto
+4. Anota la URL y la anon key
 
+### 2. Configurar Variables de Entorno
+Crea un archivo `.env` en la raíz del proyecto:
 ```env
-VITE_SUPABASE_URL=tu_url_de_supabase
-VITE_SUPABASE_ANON_KEY=tu_clave_anonima
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+VITE_SUPABASE_ANON_KEY=tu_clave_anonima_aqui
 ```
 
-4. Crear las tablas necesarias en la base de datos:
-
-```sql
--- Tabla de clientes
-CREATE TABLE clients (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  phone TEXT,
-  nationality TEXT NOT NULL,
-  status TEXT DEFAULT 'pending',
-  address TEXT,
-  passport_number TEXT,
-  assigned_lawyer TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Tabla de tipos de casos
-CREATE TABLE case_types (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  category TEXT NOT NULL,
-  estimated_duration INTEGER,
-  complexity TEXT DEFAULT 'media'
-);
-
--- Tabla de casos
-CREATE TABLE cases (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  client_id UUID REFERENCES clients(id),
-  case_type_id UUID REFERENCES case_types(id),
-  title TEXT NOT NULL,
-  description TEXT,
-  status TEXT DEFAULT 'abierto',
-  priority TEXT DEFAULT 'media',
-  opened_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  closed_at TIMESTAMP WITH TIME ZONE,
-  assigned_lawyer TEXT,
-  estimated_completion DATE
-);
-```
+### 3. Ejecutar Script de Base de Datos
+Ve al SQL Editor de Supabase y ejecuta el script de configuración que incluye:
+- Tabla de usuarios/abogados
+- Tabla de clientes con todos los campos
+- Tabla de servicios para gestionar casos
+- Tabla de gastos asociados a servicios
+- Tabla de actividades para el feed
+- Triggers para cálculos automáticos
 
 ## 📱 Características Responsive
 
@@ -159,16 +149,25 @@ CREATE TABLE cases (
 - **Grid Adaptativo**: Las tarjetas se ajustan según el tamaño de pantalla
 - **Touch Friendly**: Botones y controles optimizados para pantallas táctiles
 
-## 🎯 Próximas Funcionalidades
+## 🎯 Funcionalidades Implementadas
 
-- [ ] Sistema de autenticación de usuarios
-- [ ] Gestión completa de casos
-- [ ] Sistema de tareas y recordatorios
-- [ ] Subida y gestión de documentos
-- [ ] Reportes y analytics
-- [ ] Integración con calendario
-- [ ] Notificaciones en tiempo real
-- [ ] API REST completa
+### ✅ Completadas
+- [x] Dashboard con estadísticas
+- [x] Gestión completa de clientes (CRUD)
+- [x] Formulario de creación de clientes
+- [x] Filtros y búsqueda de clientes
+- [x] Números de expediente automáticos
+- [x] Conexión con Supabase
+- [x] Diseño responsive
+- [x] Validación de formularios
+
+### 🔄 En Desarrollo
+- [ ] Gestión de servicios/casos
+- [ ] Sistema de gastos
+- [ ] Feed de actividades
+- [ ] Gestión de documentos
+- [ ] Sistema de tareas
+- [ ] Autenticación de usuarios
 
 ## 🤝 Contribución
 
@@ -186,7 +185,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 - **Desarrollado para**: Abogados Watson
 - **Especialización**: Firma de extranjería en España
-- **Contacto**: [Información de contacto]
+- **Repositorio**: [https://github.com/rubjm9/crm-abogados-watson.git](https://github.com/rubjm9/crm-abogados-watson.git)
 
 ## 🆘 Soporte
 
