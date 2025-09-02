@@ -7,7 +7,6 @@ export const serviceService = {
     const { data, error } = await supabase
       .from('services')
       .select('*')
-      .eq('is_active', true)
       .order('name');
 
     if (error) {
@@ -15,7 +14,25 @@ export const serviceService = {
       throw error;
     }
 
-    return data || [];
+    // Mapear directamente ya que las columnas ya están en camelCase
+    const mappedServices = (data || []).map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      category: service.category,
+      basePrice: service.basePrice,
+      estimatedCost: service.estimatedCost,
+      complexity: service.complexity,
+      requiredDocuments: service.requiredDocuments || [],
+      notes: service.notes,
+      isActive: service.isActive,
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    }));
+
+    // Filtrar servicios activos
+    const activeServices = mappedServices.filter(service => service.isActive !== false);
+    return activeServices;
   },
 
   // Obtener un servicio por ID con sus hitos
@@ -34,8 +51,8 @@ export const serviceService = {
     const { data: milestones, error: milestonesError } = await supabase
       .from('service_milestones')
       .select('*')
-      .eq('service_id', id)
-      .order('order_number');
+      .eq('serviceId', id)
+      .order('orderNumber');
 
     if (milestonesError) {
       console.error('Error fetching milestones:', milestonesError);
@@ -52,10 +69,23 @@ export const serviceService = {
   async createService(serviceData: CreateServiceForm): Promise<Service> {
     const { milestones, ...serviceInfo } = serviceData;
 
+    // Usar los nombres de columnas exactos de la base de datos (camelCase)
+    const dbServiceData = {
+      name: serviceInfo.name,
+      description: serviceInfo.description,
+      category: serviceInfo.category,
+      basePrice: serviceInfo.basePrice,
+      estimatedCost: serviceInfo.estimatedCost,
+      complexity: serviceInfo.complexity,
+      requiredDocuments: serviceInfo.requiredDocuments,
+      notes: serviceInfo.notes,
+      isActive: true
+    };
+
     // Crear el servicio
     const { data: service, error: serviceError } = await supabase
       .from('services')
-      .insert(serviceInfo)
+      .insert(dbServiceData)
       .select()
       .single();
 
@@ -67,8 +97,12 @@ export const serviceService = {
     // Crear los hitos si existen
     if (milestones && milestones.length > 0) {
       const milestonesWithServiceId = milestones.map(milestone => ({
-        ...milestone,
-        service_id: service.id
+        serviceId: service.id,
+        name: milestone.name,
+        description: milestone.description,
+        orderNumber: milestone.orderNumber,
+        isPaymentRequired: milestone.isPaymentRequired,
+        defaultPaymentAmount: milestone.defaultPaymentAmount
       }));
 
       const { error: milestonesError } = await supabase
@@ -105,7 +139,7 @@ export const serviceService = {
   async deactivateService(id: string): Promise<void> {
     const { error } = await supabase
       .from('services')
-      .update({ is_active: false })
+      .update({ isActive: false })
       .eq('id', id);
 
     if (error) {
@@ -119,8 +153,8 @@ export const serviceService = {
     const { data, error } = await supabase
       .from('service_milestones')
       .select('*')
-      .eq('service_id', serviceId)
-      .order('order_number');
+      .eq('serviceId', serviceId)
+      .order('orderNumber');
 
     if (error) {
       console.error('Error fetching milestones:', error);
@@ -136,7 +170,7 @@ export const serviceService = {
       .from('service_milestones')
       .insert({
         ...milestoneData,
-        service_id: milestoneData.serviceId
+        serviceId: milestoneData.serviceId
       })
       .select()
       .single();

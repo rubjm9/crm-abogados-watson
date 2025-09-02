@@ -1,150 +1,115 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Calendar, User, FileText, Hash, Globe } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, FileText, Plus, Eye, Archive } from 'lucide-react';
 import { Client } from '../types';
 
 interface ClientCardProps {
   client: Client;
-  onClick?: () => void;
+  onAssignService: () => void;
+  onArchive?: () => void;
 }
 
-const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => {
+export const ClientCard: React.FC<ClientCardProps> = ({ client, onAssignService, onArchive }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'inactive': return 'bg-red-100 text-red-800';
+      case 'potential': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'Activo';
-      case 'inactive':
-        return 'Inactivo';
-      case 'pending':
-        return 'Pendiente';
-      default:
-        return 'Desconocido';
+      case 'active': return 'Activo';
+      case 'inactive': return 'Inactivo';
+      case 'potential': return 'Cliente potencial';
+      default: return status;
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('es-ES');
+  };
+
   return (
-    <div 
-      className="card p-6 hover:shadow-medium transition-all duration-200 cursor-pointer group"
-      onClick={onClick}
-    >
-      {/* Header de la tarjeta */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-            {client.firstName.charAt(0)}{client.lastName.charAt(0)}
-          </div>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-900">
               {client.firstName} {client.lastName}
             </h3>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Globe className="w-4 h-4" />
-              <span>{client.nationality}</span>
-            </div>
+            <p className="text-sm text-gray-500">
+              Exp. #{client.expedientNumber}
+            </p>
           </div>
-        </div>
-        <div className="flex flex-col items-end space-y-2">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
+          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(client.status)}`}>
             {getStatusText(client.status)}
           </span>
-          <div className="flex items-center space-x-1 text-xs text-gray-500">
-            <Hash className="w-3 h-3" />
-            <span>#{client.expedientNumber}</span>
-          </div>
         </div>
-      </div>
 
-      {/* Información de contacto */}
-      <div className="space-y-3 mb-4">
-        <div className="flex items-center space-x-3 text-sm text-gray-600">
-          <Mail className="w-4 h-4 text-gray-400" />
-          <span className="truncate">{client.email}</span>
-        </div>
-        {client.phone && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Phone className="w-4 h-4 text-gray-400" />
+        {/* Contact Info */}
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-gray-600">
+            <Mail className="h-4 w-4 mr-2 text-gray-400" />
+            <span>{client.email}</span>
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <Phone className="h-4 w-4 mr-2 text-gray-400" />
             <span>{client.phone}</span>
           </div>
-        )}
-        {client.address && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="truncate">{client.address}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Información adicional */}
-      <div className="space-y-3 mb-4">
-        {client.countryOfOrigin && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Globe className="w-4 h-4 text-gray-400" />
-            <span>País: {client.countryOfOrigin}</span>
-          </div>
-        )}
-        {client.cityOfResidence && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span>Ciudad: {client.cityOfResidence}</span>
-          </div>
-        )}
-        {client.birthDate && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <span>Nacimiento: {new Date(client.birthDate).toLocaleDateString('es-ES')}</span>
-          </div>
-        )}
-        {client.preferredLanguage && (
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <FileText className="w-4 h-4 text-gray-400" />
-            <span>Idioma: {client.preferredLanguage}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Información del expediente */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Calendar className="w-4 h-4" />
-          <span>Cliente desde {new Date(client.createdAt).toLocaleDateString('es-ES', { 
-            month: 'short', 
-            year: 'numeric' 
-          })}</span>
-        </div>
-        {client.passportNumber && (
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <User className="w-4 h-4" />
-            <span className="truncate">DNI: {client.passportNumber}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Notas (si existen) */}
-      {client.notes && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-start space-x-2 text-sm">
-            <FileText className="w-4 h-4 text-primary-500 mt-0.5" />
-            <div>
-              <span className="text-gray-600 font-medium">Notas:</span>
-              <p className="text-gray-500 mt-1 line-clamp-2">{client.notes}</p>
-            </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+            <span>{client.cityOfResidence || client.countryOfOrigin}</span>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Additional Info */}
+      <div className="p-6 space-y-3">
+        <div className="flex items-center text-sm text-gray-600">
+          <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+          <span>Nacimiento: {client.birthDate ? formatDate(client.birthDate) : 'N/A'}</span>
+        </div>
+        <div className="text-sm text-gray-600">
+          <span className="font-medium">Nacionalidad:</span> {client.nationality}
+        </div>
+        <div className="text-sm text-gray-600">
+          <span className="font-medium">Idioma:</span> {client.preferredLanguage}
+        </div>
+        {client.notes && (
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">Notas:</span> {client.notes}
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={onAssignService}
+            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Asignar Servicio</span>
+          </button>
+          <button className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors" title="Ver detalle">
+            <Eye className="h-4 w-4" />
+            <span>Ver Detalle</span>
+          </button>
+          <button
+            onClick={onArchive}
+            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-md hover:bg-amber-100 transition-colors"
+            title="Archivar cliente"
+          >
+            <Archive className="h-4 w-4" />
+            <span>Archivar</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
-
-export default ClientCard;

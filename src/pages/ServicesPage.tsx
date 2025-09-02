@@ -218,17 +218,21 @@ const ServicesPage: React.FC = () => {
                 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Precio base:</span>
-                  <span className="font-medium">{service.basePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                  <span className="font-medium">
+                    {(service.basePrice || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                  </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Coste estimado:</span>
-                  <span className="font-medium">{service.estimatedCost.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                  <span className="font-medium">
+                    {(service.estimatedCost || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                  </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Documentos:</span>
-                  <span className="font-medium">{service.requiredDocuments.length}</span>
+                  <span className="font-medium">{(service.requiredDocuments || []).length}</span>
                 </div>
               </div>
             </div>
@@ -280,10 +284,10 @@ const ServicesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.basePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                      {(service.basePrice || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.requiredDocuments.length}
+                      {(service.requiredDocuments || []).length}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-2">

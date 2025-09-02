@@ -17,7 +17,7 @@ export interface Client {
   email: string;
   phone: string;
   nationality: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'potential' | 'active' | 'inactive';
   expedientNumber: number;
   birthDate?: string;
   preferredLanguage: string;
@@ -71,8 +71,11 @@ export interface ClientService {
   clientId: string;
   serviceId: string;
   assignedLawyerId?: string;
-  customPrice?: number;
-  status: 'Abierto' | 'En Progreso' | 'Completado' | 'Cancelado';
+  customPrice: number;
+  personCount: number;
+  initialPayment: number;
+  amountOwed: number;
+  status: 'Activo' | 'Pausado' | 'Completado' | 'Cancelado';
   startDate: string;
   endDate?: string;
   notes?: string;
@@ -181,7 +184,7 @@ export interface CreateClientForm {
   email: string;
   phone: string;
   nationality: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'potential' | 'active' | 'inactive';
   birthDate?: string;
   preferredLanguage: string;
   countryOfOrigin: string;
@@ -215,9 +218,11 @@ export interface CreateClientServiceForm {
   clientId: string;
   serviceId: string;
   assignedLawyerId?: string;
-  customPrice?: number;
+  customPrice: number;
+  personCount: number;
+  initialPayment: number;
   notes?: string;
-  milestones: CreateClientMilestoneForm[];
+  milestones?: CreateClientMilestoneForm[];
 }
 
 export interface CreateClientMilestoneForm {

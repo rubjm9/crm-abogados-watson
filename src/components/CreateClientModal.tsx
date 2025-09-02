@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, Calendar, Globe, FileText, Save, Loader2 } from 'lucide-react';
-import { CreateClientForm, User as UserType, CaseType } from '../types';
+import { CreateClientForm, User as UserType, CaseType, Client } from '../types';
 import { clientService } from '../services/clientService';
 
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onClientCreated: () => void;
+  onClientCreated: (client: Client, assignService?: boolean) => void;
 }
 
 const CreateClientModal: React.FC<CreateClientModalProps> = ({
@@ -20,7 +20,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
     email: '',
     phone: '',
     nationality: '',
-    status: 'pending',
+    status: 'potential',
     birthDate: '',
     preferredLanguage: 'Español',
     countryOfOrigin: '',
@@ -34,6 +34,8 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [users, setUsers] = useState<UserType[]>([]);
   const [caseTypes, setCaseTypes] = useState<CaseType[]>([]);
+  const [phonePrefix, setPhonePrefix] = useState<string>('+34');
+  const [assignAfterCreate, setAssignAfterCreate] = useState<boolean>(false);
 
   // Cargar usuarios y tipos de casos al abrir el modal
   useEffect(() => {
@@ -97,7 +99,12 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
 
     try {
       setLoading(true);
-      await clientService.createClient(formData);
+      const payload: CreateClientForm = {
+        ...formData,
+        phone: formData.phone ? `${phonePrefix} ${formData.phone}`.trim() : ''
+      };
+
+      const created = await clientService.createClient(payload);
       
       // Limpiar formulario
       setFormData({
@@ -106,7 +113,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
         email: '',
         phone: '',
         nationality: '',
-        status: 'pending',
+        status: 'potential',
         birthDate: '',
         preferredLanguage: 'Español',
         countryOfOrigin: '',
@@ -115,8 +122,10 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
         passportNumber: '',
         notes: ''
       });
+      setPhonePrefix('+34');
       
-      onClientCreated();
+      onClientCreated(created, assignAfterCreate);
+      setAssignAfterCreate(false);
       onClose();
     } catch (error) {
       console.error('Error creando cliente:', error);
@@ -129,8 +138,8 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header del modal */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -138,7 +147,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               <User className="w-6 h-6 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Nuevo Cliente</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Nuevo cliente</h2>
               <p className="text-sm text-gray-500">Añade un nuevo cliente al sistema</p>
             </div>
           </div>
@@ -151,19 +160,18 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form id="create-client-form" onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Información Personal */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
               <User className="w-5 h-5 mr-2 text-primary-600" />
-              Información Personal
+              Información personal
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre *
-                </label>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">Nombre *</label>
                 <input
+                  id="firstName"
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
@@ -178,10 +186,9 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellidos *
-                </label>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Apellidos *</label>
                 <input
+                  id="lastName"
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
@@ -196,12 +203,11 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
+                    id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
@@ -217,28 +223,59 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Teléfono
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="+34 612 345 678"
-                  />
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-1">
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <select
+                        id="phonePrefix"
+                        value={phonePrefix}
+                        onChange={(e) => setPhonePrefix(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="+34">+34 España</option>
+                        <option value="+33">+33 Francia</option>
+                        <option value="+49">+49 Alemania</option>
+                        <option value="+44">+44 Reino Unido</option>
+                        <option value="+39">+39 Italia</option>
+                        <option value="+351">+351 Portugal</option>
+                        <option value="+1">+1 EE.UU./Canadá</option>
+                        <option value="+52">+52 México</option>
+                        <option value="+57">+57 Colombia</option>
+                        <option value="+58">+58 Venezuela</option>
+                        <option value="+51">+51 Perú</option>
+                        <option value="+56">+56 Chile</option>
+                        <option value="+54">+54 Argentina</option>
+                        <option value="+55">+55 Brasil</option>
+                        <option value="+90">+90 Turquía</option>
+                        <option value="+7">+7 Rusia</option>
+                        <option value="+86">+86 China</option>
+                        <option value="+91">+91 India</option>
+                        <option value="+98">+98 Irán</option>
+                        <option value="+971">+971 EAU</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      placeholder="612 345 678"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento
-                </label>
+                <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-2">Fecha de nacimiento</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
+                    id="birthDate"
                     type="date"
                     value={formData.birthDate}
                     onChange={(e) => handleInputChange('birthDate', e.target.value)}
@@ -248,10 +285,9 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Idioma Preferido
-                </label>
+                <label htmlFor="preferredLanguage" className="block text-sm font-medium text-gray-700 mb-2">Idioma preferido</label>
                 <select
+                  id="preferredLanguage"
                   value={formData.preferredLanguage}
                   onChange={(e) => handleInputChange('preferredLanguage', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -276,14 +312,13 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
               <Globe className="w-5 h-5 mr-2 text-primary-600" />
-              Nacionalidad y Ubicación
+              Nacionalidad y ubicación
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nacionalidad *
-                </label>
+                <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">Nacionalidad *</label>
                 <input
+                  id="nationality"
                   type="text"
                   value={formData.nationality}
                   onChange={(e) => handleInputChange('nationality', e.target.value)}
@@ -298,10 +333,9 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  País de Origen *
-                </label>
+                <label htmlFor="countryOfOrigin" className="block text-sm font-medium text-gray-700 mb-2">País de origen *</label>
                 <input
+                  id="countryOfOrigin"
                   type="text"
                   value={formData.countryOfOrigin}
                   onChange={(e) => handleInputChange('countryOfOrigin', e.target.value)}
@@ -316,12 +350,11 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad de Residencia
-                </label>
+                <label htmlFor="cityOfResidence" className="block text-sm font-medium text-gray-700 mb-2">Ciudad de residencia</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
+                    id="cityOfResidence"
                     type="text"
                     value={formData.cityOfResidence}
                     onChange={(e) => handleInputChange('cityOfResidence', e.target.value)}
@@ -332,10 +365,9 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dirección
-                </label>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
                 <input
+                  id="address"
                   type="text"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
@@ -345,10 +377,9 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Número de Pasaporte/DNI
-                </label>
+                <label htmlFor="passportNumber" className="block text-sm font-medium text-gray-700 mb-2">Número de pasaporte/DNI</label>
                 <input
+                  id="passportNumber"
                   type="text"
                   value={formData.passportNumber}
                   onChange={(e) => handleInputChange('passportNumber', e.target.value)}
@@ -361,15 +392,15 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Estado
                 </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
-                  <option value="pending">Pendiente</option>
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
-                </select>
+                <input
+                  type="text"
+                  value="Cliente potencial"
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  El estado se actualiza automáticamente al asignar servicios
+                </p>
               </div>
             </div>
           </div>
@@ -378,13 +409,12 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-primary-600" />
-              Información Adicional
+              Información adicional
             </h3>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notas
-              </label>
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">Notas</label>
               <textarea
+                id="notes"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
@@ -413,7 +443,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {loading ? (
                 <>
@@ -423,9 +453,18 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  <span>Crear Cliente</span>
+                  <span>Crear cliente</span>
                 </>
               )}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => { setAssignAfterCreate(true); const formEl = document.getElementById('create-client-form') as HTMLFormElement | null; formEl?.requestSubmit(); }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Crear y asignar servicio"
+            >
+              Crear y asignar servicio
             </button>
           </div>
         </form>
