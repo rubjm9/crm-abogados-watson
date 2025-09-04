@@ -87,7 +87,6 @@ export const clientService = {
           email: clientData.email,
           phone: clientData.phone || null,
           nationality: clientData.nationality,
-          status: clientData.status,
           birth_date: clientData.birthDate || null,
           preferred_language: clientData.preferredLanguage,
           country_of_origin: clientData.countryOfOrigin,

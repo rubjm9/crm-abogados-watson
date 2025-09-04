@@ -5,9 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
+    port: 3001,
+    strictPort: false, // Si 3001 está ocupado, busca otro
     host: true,
-    open: true
+    open: true,
+    cors: true, // Habilitar CORS para desarrollo
+    hmr: {
+      overlay: false // Deshabilitar overlay de errores para reducir peticiones
+    }
   },
   build: {
     outDir: 'dist',

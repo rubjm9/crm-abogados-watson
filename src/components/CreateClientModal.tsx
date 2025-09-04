@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, Calendar, Globe, FileText, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Globe, FileText, Save, Loader2 } from 'lucide-react';
 import { CreateClientForm, User as UserType, CaseType, Client } from '../types';
 import { clientService } from '../services/clientService';
+import Modal from './Modal';
 
 interface CreateClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onClientCreated: (client: Client, assignService?: boolean) => void;
+  onClientCreated: (client?: Client) => void;
 }
 
 const CreateClientModal: React.FC<CreateClientModalProps> = ({
@@ -20,7 +21,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
     email: '',
     phone: '',
     nationality: '',
-    status: 'potential',
+    status: 'active',
     birthDate: '',
     preferredLanguage: 'Español',
     countryOfOrigin: '',
@@ -35,7 +36,6 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
   const [users, setUsers] = useState<UserType[]>([]);
   const [caseTypes, setCaseTypes] = useState<CaseType[]>([]);
   const [phonePrefix, setPhonePrefix] = useState<string>('+34');
-  const [assignAfterCreate, setAssignAfterCreate] = useState<boolean>(false);
 
   // Cargar usuarios y tipos de casos al abrir el modal
   useEffect(() => {
@@ -113,7 +113,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
         email: '',
         phone: '',
         nationality: '',
-        status: 'potential',
+        status: 'active',
         birthDate: '',
         preferredLanguage: 'Español',
         countryOfOrigin: '',
@@ -124,8 +124,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
       });
       setPhonePrefix('+34');
       
-      onClientCreated(created, assignAfterCreate);
-      setAssignAfterCreate(false);
+      onClientCreated(created);
       onClose();
     } catch (error) {
       console.error('Error creando cliente:', error);
@@ -135,36 +134,27 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {/* Header del modal */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Nuevo cliente</h2>
-              <p className="text-sm text-gray-500">Añade un nuevo cliente al sistema</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nuevo cliente"
+      maxWidth="max-w-4xl"
+    >
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="w-10 h-10 bg-aw-primary bg-opacity-10 rounded-lg flex items-center justify-center">
+          <User className="w-6 h-6 text-aw-primary" />
         </div>
+        <div>
+          <p className="text-sm text-gray-500">Añade un nuevo cliente al sistema</p>
+        </div>
+      </div>
 
-        {/* Formulario */}
-        <form id="create-client-form" onSubmit={handleSubmit} className="p-6 space-y-6">
+      <form id="create-client-form" onSubmit={handleSubmit} className="space-y-6">
           {/* Información Personal */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <User className="w-5 h-5 mr-2 text-primary-600" />
+              <User className="w-5 h-5 mr-2 text-aw-primary" />
               Información personal
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,7 +165,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary ${
                     errors.firstName ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Nombre del cliente"
@@ -192,7 +182,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary ${
                     errors.lastName ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Apellidos del cliente"
@@ -211,7 +201,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary ${
                       errors.email ? 'border-red-300' : 'border-gray-300'
                     }`}
                     placeholder="email@ejemplo.com"
@@ -232,7 +222,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                         id="phonePrefix"
                         value={phonePrefix}
                         onChange={(e) => setPhonePrefix(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                       >
                         <option value="+34">+34 España</option>
                         <option value="+33">+33 Francia</option>
@@ -263,7 +253,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                       placeholder="612 345 678"
                     />
                   </div>
@@ -279,7 +269,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                     type="date"
                     value={formData.birthDate}
                     onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                   />
                 </div>
               </div>
@@ -290,7 +280,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   id="preferredLanguage"
                   value={formData.preferredLanguage}
                   onChange={(e) => handleInputChange('preferredLanguage', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                 >
                   <option value="Español">Español</option>
                   <option value="Inglés">Inglés</option>
@@ -311,7 +301,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
           {/* Información de Nacionalidad y Ubicación */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <Globe className="w-5 h-5 mr-2 text-primary-600" />
+              <Globe className="w-5 h-5 mr-2 text-aw-primary" />
               Nacionalidad y ubicación
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -322,7 +312,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.nationality}
                   onChange={(e) => handleInputChange('nationality', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary ${
                     errors.nationality ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Ej: Colombiana, Venezolana, etc."
@@ -339,7 +329,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.countryOfOrigin}
                   onChange={(e) => handleInputChange('countryOfOrigin', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary ${
                     errors.countryOfOrigin ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Ej: Colombia, Venezuela, etc."
@@ -358,7 +348,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                     type="text"
                     value={formData.cityOfResidence}
                     onChange={(e) => handleInputChange('cityOfResidence', e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                     placeholder="Ej: Madrid, Barcelona, etc."
                   />
                 </div>
@@ -371,7 +361,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.address}
                   onChange={(e) => handleInputChange('address', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                   placeholder="Dirección completa"
                 />
               </div>
@@ -383,7 +373,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                   type="text"
                   value={formData.passportNumber}
                   onChange={(e) => handleInputChange('passportNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                   placeholder="Número de documento"
                 />
               </div>
@@ -408,7 +398,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
           {/* Notas */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FileText className="w-5 h-5 mr-2 text-primary-600" />
+              <FileText className="w-5 h-5 mr-2 text-aw-primary" />
               Información adicional
             </h3>
             <div>
@@ -418,7 +408,7 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                 placeholder="Observaciones adicionales sobre el cliente..."
               />
             </div>
@@ -436,14 +426,14 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-aw-primary focus:ring-offset-2"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-4 py-2 bg-aw-primary text-white rounded-lg hover:bg-aw-primary-dark focus:outline-none focus:ring-2 focus:ring-aw-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {loading ? (
                 <>
@@ -457,20 +447,11 @@ const CreateClientModal: React.FC<CreateClientModalProps> = ({
                 </>
               )}
             </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => { setAssignAfterCreate(true); const formEl = document.getElementById('create-client-form') as HTMLFormElement | null; formEl?.requestSubmit(); }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Crear y asignar servicio"
-            >
-              Crear y asignar servicio
-            </button>
+
           </div>
         </form>
-      </div>
-    </div>
-  );
+      </Modal>
+    );
 };
 
 export default CreateClientModal;

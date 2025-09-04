@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Eye, Edit, Trash2, FileText, DollarSign } from 'lucide-react';
+import { Plus, Search, Filter, Eye, Edit, Trash2, FileText, DollarSign, Grid, List } from 'lucide-react';
 import { Client } from '../types';
 import { clientService } from '../services/clientService';
 import { clientServiceService } from '../services/clientServiceService';
+import { ClientsTable } from '../components/ClientsTable';
 import { ClientCard } from '../components/ClientCard';
 import CreateClientModal from '../components/CreateClientModal';
 import { AssignServiceModal } from '../components/AssignServiceModal';
+import { ClientMilestones } from '../components/ClientMilestones';
 
 const ClientsPage: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -18,6 +20,10 @@ const ClientsPage: React.FC = () => {
   const [showAssignServiceModal, setShowAssignServiceModal] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedClientName, setSelectedClientName] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [showMilestonesModal, setShowMilestonesModal] = useState(false);
+  const [selectedMilestoneClientId, setSelectedMilestoneClientId] = useState<string>('');
+  const [selectedMilestoneClientName, setSelectedMilestoneClientName] = useState<string>('');
 
   useEffect(() => {
     loadClients();
@@ -62,14 +68,9 @@ const ClientsPage: React.FC = () => {
     setFilteredClients(filtered);
   };
 
-  const handleClientCreated = (client?: Client, assignService?: boolean) => {
+  const handleClientCreated = (client?: Client) => {
     loadClients();
     setShowCreateModal(false);
-    if (client && assignService) {
-      setSelectedClientId(client.id);
-      setSelectedClientName(`${client.firstName} ${client.lastName}`);
-      setShowAssignServiceModal(true);
-    }
   };
 
   const handleAssignService = (clientId: string, clientName: string) => {
@@ -82,6 +83,28 @@ const ClientsPage: React.FC = () => {
     // Recargar clientes para mostrar los nuevos servicios
     loadClients();
   };
+
+  const handleViewDetails = (clientId: string) => {
+    // TODO: Implementar vista de detalles del cliente
+    console.log('Ver detalles del cliente:', clientId);
+  };
+
+  const handleArchive = async (clientId: string) => {
+    try {
+      await clientService.updateClient(clientId, { status: 'inactive' as any });
+      loadClients();
+    } catch (e) {
+      console.error('Error archivando cliente', e);
+    }
+  };
+
+  const handleViewMilestones = (clientId: string, clientName: string) => {
+    setSelectedMilestoneClientId(clientId);
+    setSelectedMilestoneClientName(clientName);
+    setShowMilestonesModal(true);
+  };
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,10 +144,10 @@ const ClientsPage: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="mt-4 sm:mt-0 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          className="mt-4 sm:mt-0 btn-primary px-4 py-2 rounded-md transition-colors flex items-center space-x-2"
         >
           <Plus size={20} />
-          <span>Nuevo Cliente</span>
+          <span>Nuevo cliente</span>
         </button>
       </div>
 
@@ -210,6 +233,30 @@ const ClientsPage: React.FC = () => {
               <option value="inactive">Inactivos</option>
             </select>
           </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'table' 
+                  ? 'bg-aw-primary text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Vista de tabla"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === 'grid' 
+                  ? 'bg-aw-primary text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Vista de tarjetas"
+            >
+              <Grid className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -220,29 +267,15 @@ const ClientsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Clients Grid */}
-      {filteredClients.length === 0 ? (
-        <div className="text-center py-12">
-          <FileText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No hay clientes</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || statusFilter !== 'all' 
-              ? 'No se encontraron clientes con los filtros aplicados.'
-              : 'Comienza creando tu primer cliente.'
-            }
-          </p>
-          {!searchTerm && statusFilter === 'all' && (
-            <div className="mt-6">
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="inline h-4 w-4 mr-2" />
-                Nuevo Cliente
-              </button>
-            </div>
-          )}
-        </div>
+      {/* Clients View */}
+      {viewMode === 'table' ? (
+        <ClientsTable
+          clients={filteredClients}
+          onAssignService={handleAssignService}
+          onArchive={handleArchive}
+          onViewDetails={handleViewDetails}
+          onViewMilestones={handleViewMilestones}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClients.map((client) => (
@@ -250,33 +283,33 @@ const ClientsPage: React.FC = () => {
               key={client.id}
               client={client}
               onAssignService={() => handleAssignService(client.id, `${client.firstName} ${client.lastName}`)}
-              onArchive={async () => {
-                try {
-                  await clientService.updateClient(client.id, { status: 'inactive' as any });
-                  loadClients();
-                } catch (e) {
-                  console.error('Error archivando cliente', e);
-                }
-              }}
+              onArchive={handleArchive}
             />
           ))}
         </div>
       )}
 
       {/* Modals */}
-      <CreateClientModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onClientCreated={handleClientCreated}
-      />
+              <CreateClientModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onClientCreated={handleClientCreated}
+        />
 
-      <AssignServiceModal
-        isOpen={showAssignServiceModal}
-        onClose={() => setShowAssignServiceModal(false)}
-        clientId={selectedClientId}
-        clientName={selectedClientName}
-        onServiceAssigned={handleServiceAssigned}
-      />
+        <AssignServiceModal
+          isOpen={showAssignServiceModal}
+          onClose={() => setShowAssignServiceModal(false)}
+          clientId={selectedClientId}
+          clientName={selectedClientName}
+          onServiceAssigned={handleServiceAssigned}
+        />
+
+        <ClientMilestones
+          isOpen={showMilestonesModal}
+          onClose={() => setShowMilestonesModal(false)}
+          clientId={selectedMilestoneClientId}
+          clientName={selectedMilestoneClientName}
+        />
     </div>
   );
 };

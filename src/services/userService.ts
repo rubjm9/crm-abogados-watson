@@ -22,6 +22,10 @@ export const userService = {
       role: u.role,
       avatarUrl: u.avatar_url || undefined,
       isActive: Boolean(u.is_active),
+      billingType: u.billing_type || 'salario',
+      commissionPercentage: u.commission_percentage || undefined,
+      hourlyRate: u.hourly_rate || undefined,
+      monthlySalary: u.monthly_salary || undefined,
       createdAt: u.created_at,
       updatedAt: u.updated_at,
     } as User));
@@ -48,6 +52,10 @@ export const userService = {
       role: data.role,
       avatarUrl: data.avatar_url || undefined,
       isActive: Boolean(data.is_active),
+      billingType: data.billing_type || 'salario',
+      commissionPercentage: data.commission_percentage || undefined,
+      hourlyRate: data.hourly_rate || undefined,
+      monthlySalary: data.monthly_salary || undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     } as User;
@@ -64,6 +72,10 @@ export const userService = {
         role: (userData as any).role,
         avatar_url: (userData as any).avatarUrl || null,
         is_active: (userData as any).isActive ?? true,
+        billing_type: (userData as any).billingType || 'salario',
+        commission_percentage: (userData as any).commissionPercentage || null,
+        hourly_rate: (userData as any).hourlyRate || null,
+        monthly_salary: (userData as any).monthlySalary || null,
       })
       .select()
       .single();
@@ -81,6 +93,10 @@ export const userService = {
       role: data.role,
       avatarUrl: data.avatar_url || undefined,
       isActive: Boolean(data.is_active),
+      billingType: data.billing_type || 'salario',
+      commissionPercentage: data.commission_percentage || undefined,
+      hourlyRate: data.hourly_rate || undefined,
+      monthlySalary: data.monthly_salary || undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     } as User;
@@ -95,6 +111,10 @@ export const userService = {
     if ((updates as any).role !== undefined) updateData.role = (updates as any).role;
     if ((updates as any).avatarUrl !== undefined) updateData.avatar_url = (updates as any).avatarUrl;
     if ((updates as any).isActive !== undefined) updateData.is_active = (updates as any).isActive;
+    if ((updates as any).billingType !== undefined) updateData.billing_type = (updates as any).billingType;
+    if ((updates as any).commissionPercentage !== undefined) updateData.commission_percentage = (updates as any).commissionPercentage;
+    if ((updates as any).hourlyRate !== undefined) updateData.hourly_rate = (updates as any).hourlyRate;
+    if ((updates as any).monthlySalary !== undefined) updateData.monthly_salary = (updates as any).monthlySalary;
 
     const { data, error } = await supabase
       .from('users')
@@ -116,8 +136,43 @@ export const userService = {
       role: data.role,
       avatarUrl: data.avatar_url || undefined,
       isActive: Boolean(data.is_active),
+      billingType: data.billing_type || 'salario',
+      commissionPercentage: data.commission_percentage || undefined,
+      hourlyRate: data.hourly_rate || undefined,
+      monthlySalary: data.monthly_salary || undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
     } as User;
+  },
+
+  // Obtener usuarios por rol
+  async getUsersByRole(role: string): Promise<User[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', role)
+      .eq('is_active', true)
+      .order('first_name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching users by role:', error);
+      throw error;
+    }
+
+    return (data || []).map((u: any) => ({
+      id: u.id,
+      email: u.email,
+      firstName: u.first_name,
+      lastName: u.last_name,
+      role: u.role,
+      avatarUrl: u.avatar_url || undefined,
+      isActive: Boolean(u.is_active),
+      billingType: u.billing_type || 'salario',
+      commissionPercentage: u.commission_percentage || undefined,
+      hourlyRate: u.hourly_rate || undefined,
+      monthlySalary: u.monthly_salary || undefined,
+      createdAt: u.created_at,
+      updatedAt: u.updated_at,
+    } as User));
   }
 };

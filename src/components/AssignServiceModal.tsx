@@ -4,6 +4,7 @@ import { Service, CreateClientServiceForm, User as UserType } from '../types';
 import { serviceService } from '../services/serviceService';
 import { clientServiceService } from '../services/clientServiceService';
 import { userService } from '../services/userService';
+import Modal from './Modal';
 
 interface AssignServiceModalProps {
   isOpen: boolean;
@@ -108,201 +109,188 @@ export const AssignServiceModal: React.FC<AssignServiceModalProps> = ({
     setInitialPayment(newPrice * 0.5); // Recalcular pago inicial al cambiar precio
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900" id="assign-service-title">
-            Asignar servicio a {clientName || 'cliente'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Asignar servicio a ${clientName || 'cliente'}`}
+      maxWidth="max-w-2xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Service Selection */}
+        <div>
+          <label htmlFor="serviceId" className="block text-sm font-medium text-gray-700 mb-2">
+            Servicio*
+          </label>
+          <select
+            id="serviceId"
+            value={selectedService}
+            onChange={(e) => handleServiceChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+            required
           >
-            <X size={24} />
-          </button>
+            <option value="">Seleccionar servicio</option>
+            {services.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.category}: {service.name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Service Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="serviceId">
-              Servicio*
-            </label>
-            <select
-              id="serviceId"
-              value={selectedService}
-              onChange={(e) => handleServiceChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Seleccionar servicio</option>
-              {services.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.category}: {service.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Assigned Lawyer */}
+        <div>
+          <label htmlFor="assignedLawyerId" className="block text-sm font-medium text-gray-700 mb-2">
+            <User className="inline w-4 h-4 mr-1" />
+            Abogado responsable
+          </label>
+          <select
+            id="assignedLawyerId"
+            value={selectedLawyer}
+            onChange={(e) => setSelectedLawyer(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+          >
+            <option value="">Sin asignar</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.firstName} {user.lastName}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-gray-500 mt-1">
+            Abogado que se encargará de este servicio
+          </p>
+        </div>
 
-          {/* Assigned Lawyer */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="assignedLawyerId">
-              <User className="inline w-4 h-4 mr-1" />
-              Abogado responsable
-            </label>
-            <select
-              id="assignedLawyerId"
-              value={selectedLawyer}
-              onChange={(e) => setSelectedLawyer(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Sin asignar</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.firstName} {user.lastName}
-                </option>
-              ))}
-            </select>
+        {/* Person Count */}
+        <div>
+          <label htmlFor="personCount" className="block text-sm font-medium text-gray-700 mb-2">
+            Número de personas*
+          </label>
+          <input
+            id="personCount"
+            type="number"
+            value={personCount}
+            onChange={(e) => setPersonCount(Number(e.target.value))}
+            min="1"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Número de personas incluidas en este trámite
+          </p>
+        </div>
+
+        {/* Custom Price */}
+        <div>
+          <label htmlFor="customPrice" className="block text-sm font-medium text-gray-700 mb-2">
+            Precio total del servicio (EUR) *
+          </label>
+          <input
+            id="customPrice"
+            type="number"
+            value={customPrice}
+            onChange={(e) => handlePriceChange(Number(e.target.value))}
+            min="0"
+            step="0.01"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+            required
+          />
+          {selectedService && (
             <p className="text-sm text-gray-500 mt-1">
-              Abogado que se encargará de este servicio
+              Precio base: {services.find(s => s.id === selectedService)?.basePrice || 0} EUR
             </p>
-          </div>
-
-          {/* Person Count */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="personCount">
-              Número de personas*
-            </label>
-            <input
-              id="personCount"
-              type="number"
-              value={personCount}
-              onChange={(e) => setPersonCount(Number(e.target.value))}
-              min="1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Número de personas incluidas en este trámite
-            </p>
-          </div>
-
-          {/* Custom Price */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="customPrice">
-              Precio total del servicio (EUR) *
-            </label>
-            <input
-              id="customPrice"
-              type="number"
-              value={customPrice}
-              onChange={(e) => handlePriceChange(Number(e.target.value))}
-              min="0"
-              step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            {selectedService && (
-              <p className="text-sm text-gray-500 mt-1">
-                Precio base: {services.find(s => s.id === selectedService)?.basePrice || 0} EUR
-              </p>
-            )}
-          </div>
-
-          {/* Payment Distribution */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="initialPayment">
-                Pago inicial (EUR) *
-              </label>
-              <input
-                id="initialPayment"
-                type="number"
-                value={initialPayment}
-                onChange={(e) => setInitialPayment(Number(e.target.value))}
-                min="0"
-                max={customPrice}
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Pago que recibe al contratar
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="amountOwed">
-                Cantidad adeudada (EUR)
-              </label>
-              <input
-                id="amountOwed"
-                type="number"
-                value={customPrice - initialPayment}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Resto pendiente de pago
-              </p>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="notes">
-              Notas
-            </label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Notas adicionales sobre este servicio..."
-            />
-          </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-              {error}
-            </div>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Asignando...</span>
-                </>
-              ) : (
-                <>
-                  <Plus size={16} />
-                  <span>Asignar Servicio</span>
-                </>
-              )}
-            </button>
+        {/* Payment Distribution */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="initialPayment" className="block text-sm font-medium text-gray-700 mb-2">
+              Pago inicial (EUR) *
+            </label>
+            <input
+              id="initialPayment"
+              type="number"
+              value={initialPayment}
+              onChange={(e) => setInitialPayment(Number(e.target.value))}
+              min="0"
+              max={customPrice}
+              step="0.01"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+              required
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Pago que recibe al contratar
+            </p>
           </div>
-        </form>
-      </div>
-    </div>
+          <div>
+            <label htmlFor="amountOwed" className="block text-sm font-medium text-gray-700 mb-2">
+              Cantidad adeudada (EUR)
+            </label>
+            <input
+              id="amountOwed"
+              type="number"
+              value={customPrice - initialPayment}
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Resto pendiente de pago
+            </p>
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+            Notas
+          </label>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
+            placeholder="Notas adicionales sobre este servicio..."
+          />
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-end space-x-3 pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 bg-aw-primary text-white rounded-md hover:bg-aw-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Asignando...</span>
+              </>
+            ) : (
+              <>
+                <Plus size={16} />
+                <span>Asignar Servicio</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };

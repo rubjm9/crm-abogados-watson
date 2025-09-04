@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { CreateServiceForm, CreateMilestoneForm } from '../types';
 import { serviceService } from '../services/serviceService';
+import Modal from './Modal';
 
 interface CreateServiceModalProps {
   isOpen: boolean;
@@ -137,24 +138,14 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Servicio</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Crear nuevo servicio"
+      maxWidth="max-w-4xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-red-800">{error}</p>
@@ -164,27 +155,29 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
           {/* Información básica */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Servicio *
+              <label htmlFor="serviceName" className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre del servicio *
               </label>
               <input
+                id="serviceName"
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className="input-field"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                 placeholder="Ej: Residencia por Arraigo Social"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="serviceCategory" className="block text-sm font-medium text-gray-700 mb-2">
                 Categoría *
               </label>
               <select
+                id="serviceCategory"
                 value={formData.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
-                className="input-field"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
               >
                 <option value="Nacionalidad">Nacionalidad</option>
                 <option value="Residencia">Residencia</option>
@@ -194,45 +187,48 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Precio Base (€) *
+              <label htmlFor="serviceBasePrice" className="block text-sm font-medium text-gray-700 mb-2">
+                Precio base (€) *
               </label>
               <input
+                id="serviceBasePrice"
                 type="number"
                 step="0.01"
                 min="0"
                 value={formData.basePrice}
                 onChange={(e) => handleInputChange('basePrice', parseFloat(e.target.value) || 0)}
-                className="input-field"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                 placeholder="0.00"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Coste Estimado (€) *
+              <label htmlFor="serviceEstimatedCost" className="block text-sm font-medium text-gray-700 mb-2">
+                Coste estimado (€) *
               </label>
               <input
+                id="serviceEstimatedCost"
                 type="number"
                 step="0.01"
                 min="0"
                 value={formData.estimatedCost}
                 onChange={(e) => handleInputChange('estimatedCost', parseFloat(e.target.value) || 0)}
-                className="input-field"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                 placeholder="0.00"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="serviceComplexity" className="block text-sm font-medium text-gray-700 mb-2">
                 Complejidad *
               </label>
               <select
+                id="serviceComplexity"
                 value={formData.complexity}
                 onChange={(e) => handleInputChange('complexity', e.target.value)}
-                className="input-field"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
               >
                 <option value="Baja">Baja</option>
                 <option value="Media">Media</option>
@@ -249,7 +245,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
             <textarea
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="input-field"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
               rows={3}
               placeholder="Describe el servicio..."
             />
@@ -258,7 +254,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
           {/* Documentos requeridos */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Documentos Requeridos
+                              Documentos requeridos
             </label>
             <div className="space-y-2">
               {formData.requiredDocuments.map((doc, index) => (
@@ -299,7 +295,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Hitos del Servicio
+                Hitos del servicio
               </label>
               <button
                 type="button"
@@ -337,7 +333,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         type="text"
                         value={milestone.name}
                         onChange={(e) => handleMilestoneChange(index, 'name', e.target.value)}
-                        className="input-field"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                         placeholder="Ej: Entrevista inicial"
                         required
                       />
@@ -351,7 +347,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                         type="text"
                         value={milestone.description}
                         onChange={(e) => handleMilestoneChange(index, 'description', e.target.value)}
-                        className="input-field"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                         placeholder="Descripción del hito..."
                       />
                     </div>
@@ -381,7 +377,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                           min="0"
                           value={milestone.defaultPaymentAmount || ''}
                           onChange={(e) => handleMilestoneChange(index, 'defaultPaymentAmount', parseFloat(e.target.value) || undefined)}
-                          className="input-field"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
                           placeholder="0.00"
                         />
                       </div>
@@ -400,7 +396,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
             <textarea
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
-              className="input-field"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-aw-primary focus:border-aw-primary"
               rows={3}
               placeholder="Notas adicionales..."
             />
@@ -421,13 +417,12 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
               className="btn-primary"
               disabled={loading}
             >
-              {loading ? 'Creando...' : 'Crear Servicio'}
+              {loading ? 'Creando...' : 'Crear servicio'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
-  );
+      </Modal>
+    );
 };
 
 export default CreateServiceModal;

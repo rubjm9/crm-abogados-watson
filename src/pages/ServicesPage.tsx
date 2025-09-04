@@ -102,7 +102,7 @@ const ServicesPage: React.FC = () => {
             className="btn-primary flex items-center gap-2"
           >
             <Plus size={16} />
-            Nuevo Servicio
+                          Nuevo servicio
           </button>
         </div>
       </div>

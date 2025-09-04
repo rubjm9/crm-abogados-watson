@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   Home,
-  Bell
+  Bell,
+  DollarSign
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     { name: 'Clientes', href: '/clients', icon: Users },
     { name: 'Servicios', href: '/services', icon: FileText },
     { name: 'Casos', href: '/cases', icon: Briefcase },
+    { name: 'Contabilidad', href: '/accounting', icon: DollarSign },
     { name: 'Calendario', href: '/calendar', icon: Calendar },
     { name: 'Configuración', href: '/settings', icon: Settings },
   ];
@@ -54,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-aw-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">W</span>
             </div>
             <div>
@@ -81,12 +83,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   className={`
                     flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200
                     ${isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-600'
+                      ? 'bg-aw-primary bg-opacity-10 text-aw-primary border-r-2 border-aw-primary'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }
                   `}
                 >
-                  <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-primary-600' : 'text-gray-400'}`} />
+                  <Icon className={`w-5 h-5 ${isActive(item.href) ? 'text-white' : 'text-gray-400'}`} />
                   <span>{item.name}</span>
                 </Link>
               );
@@ -97,8 +99,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         {/* Footer del sidebar */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
-            <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-              <span className="text-primary-600 font-semibold text-sm">AW</span>
+            <div className="w-8 h-8 bg-aw-primary bg-opacity-10 rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">AW</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">Abogados Watson</p>

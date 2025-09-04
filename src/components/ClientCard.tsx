@@ -92,6 +92,7 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onAssignService,
           <button
             onClick={onAssignService}
             className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+            title="Asignar servicio"
           >
             <Plus className="h-4 w-4" />
             <span>Asignar Servicio</span>
@@ -100,14 +101,16 @@ export const ClientCard: React.FC<ClientCardProps> = ({ client, onAssignService,
             <Eye className="h-4 w-4" />
             <span>Ver Detalle</span>
           </button>
-          <button
-            onClick={onArchive}
-            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-md hover:bg-amber-100 transition-colors"
-            title="Archivar cliente"
-          >
-            <Archive className="h-4 w-4" />
-            <span>Archivar</span>
-          </button>
+          {onArchive && (
+            <button
+              onClick={() => onArchive(client.id)}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-md hover:bg-amber-100 transition-colors"
+              title="Archivar cliente"
+            >
+              <Archive className="h-4 w-4" />
+              <span>Archivar</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
